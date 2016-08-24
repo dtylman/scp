@@ -1,7 +1,6 @@
 package scp
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -11,11 +10,8 @@ import (
 	"golang.org/x/crypto/ssh"
 
 	"errors"
-	"strconv"
 
 	"bytes"
-	"io/ioutil"
-	"strings"
 )
 
 const (
@@ -97,37 +93,13 @@ func CopyFrom(sshClient *ssh.Client, remote string, local string) (int64, error)
 	if err != nil {
 		return 0, err
 	}
-	opCode := make([]byte, 1)
-	_, err = reader.Read(opCode)
-	switch opCode[0] {
-	case 'C':
-	case 0x1, 0x2:
-		msg, err := ioutil.ReadAll(reader)
-		if err != nil {
-			return 0, errors.New(fmt.Sprintf("scp source error: %v. read error: %v", opCode[0], err))
-		}
-		return 0, errors.New(strings.TrimSpace(string(msg)))
-	default:
-		return 0, errors.New(fmt.Sprintf("Unsupported opcode: %v", opCode[0]))
-	}
-	scanner := bufio.NewScanner(reader)
-	scanner.Split(bufio.ScanWords)
-	mode, err := nextWord(scanner)
+	msg, err := NewMessageFromReader(reader)
 	if err != nil {
 		return 0, err
 	}
-	size, err := nextNumber(scanner)
-	if err != nil {
-		return 0, err
-	}
-	fileName, err := nextWord(scanner)
-	if err != nil {
-		return 0, err
-	}
-	log.Debugf("Receiving %v %v %v", mode, size, fileName)
+	log.Debugf("Receiving %v", msg)
 
 	err = ack(writer)
-
 	if err != nil {
 		return 0, err
 	}
@@ -136,7 +108,7 @@ func CopyFrom(sshClient *ssh.Client, remote string, local string) (int64, error)
 		return 0, err
 	}
 	defer outFile.Close()
-	n, err := copyN(outFile, reader, size)
+	n, err := copyN(outFile, reader, msg.Size)
 	if err != nil {
 		return 0, err
 	}
@@ -149,7 +121,7 @@ func CopyFrom(sshClient *ssh.Client, remote string, local string) (int64, error)
 		return 0, err
 	}
 	err = session.Wait()
-	log.Debugf("Copied %v bytes out of %v. err: %v stderr:%v", n, size, err, stderr)
+	log.Debugf("Copied %v bytes out of %v. err: %v stderr:%v", n, msg.Size, err, stderr)
 	return n, nil
 }
 
@@ -165,26 +137,12 @@ func ack(writer io.Writer) error {
 	return nil
 }
 
-func nextWord(scanner *bufio.Scanner) (string, error) {
-	if !scanner.Scan() {
-		return "", scanner.Err()
-	}
-	return scanner.Text(), nil
-}
-
-func nextNumber(scanner *bufio.Scanner) (int64, error) {
-	tok, err := nextWord(scanner)
-	if err != nil {
-		return 0, err
-	}
-	return strconv.ParseInt(tok, 10, 0)
-}
-
 func copyN(writer io.Writer, src io.Reader, size int64) (int64, error) {
 	reader := io.LimitReader(src, size)
 	var total int64
 	for total < size {
 		n, err := io.CopyBuffer(writer, reader, make([]byte, buffSize))
+		log.Debugf("Copied chunk %v total: %v out of %v err: %v ", n, total, size, err)
 		if err != nil {
 			return 0, err
 		}
