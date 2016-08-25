@@ -49,7 +49,7 @@ func (m *Message) ReadError(reader io.Reader) error {
 	return nil
 }
 
-func (m *Message) Readline(reader io.Reader) (string, error) {
+func (m *Message) readLine(reader io.Reader) (string, error) {
 	line := ""
 	b, err := m.readByte(reader)
 	if err != nil {
@@ -65,8 +65,8 @@ func (m *Message) Readline(reader io.Reader) (string, error) {
 	return line, nil
 }
 
-func (m *Message) ReadCopy(reader io.Reader) error {
-	line, err := m.Readline(reader)
+func (m *Message) readCopy(reader io.Reader) error {
+	line, err := m.readLine(reader)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func (m *Message) ReadFrom(reader io.Reader) error {
 	}
 	switch m.Type {
 	case CopyMessage:
-		err = m.ReadCopy(reader)
+		err = m.readCopy(reader)
 		if err != nil {
 			return err
 		}

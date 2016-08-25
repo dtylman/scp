@@ -97,6 +97,9 @@ func CopyFrom(sshClient *ssh.Client, remote string, local string) (int64, error)
 	if err != nil {
 		return 0, err
 	}
+	if msg.Type == ErrorMessage || msg.Type == WarnMessage {
+		return 0, msg.Error
+	}
 	log.Debugf("Receiving %v", msg)
 
 	err = ack(writer)
