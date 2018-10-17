@@ -10,9 +10,12 @@ import (
 )
 
 const (
-	CopyMessage  = 'C'
+	//CopyMessage Copy Message Opcode
+	CopyMessage = 'C'
+	//ErrorMessage Error OpCode
 	ErrorMessage = 0x1
-	WarnMessage  = 0x2
+	//WarnMessage Warning Opcode
+	WarnMessage = 0x2
 )
 
 //Message is scp control message
@@ -40,6 +43,7 @@ func (m *Message) readOpCode(reader io.Reader) error {
 	return err
 }
 
+//ReadError reads an error message
 func (m *Message) ReadError(reader io.Reader) error {
 	msg, err := ioutil.ReadAll(reader)
 	if err != nil {
@@ -83,31 +87,33 @@ func (m *Message) readCopy(reader io.Reader) error {
 	return nil
 }
 
-func (m *Message) ReadFrom(reader io.Reader) error {
+//ReadFrom reads message from reader
+func (m *Message) ReadFrom(reader io.Reader) (int64, error) {
 	err := m.readOpCode(reader)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	switch m.Type {
 	case CopyMessage:
 		err = m.readCopy(reader)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	case ErrorMessage, WarnMessage:
 		err = m.ReadError(reader)
 		if err != nil {
-			return err
+			return 0, err
 		}
 	default:
-		return errors.New(fmt.Sprintf("Unsupported opcode: %v", m.Type))
+		return 0, fmt.Errorf("Unsupported opcode: %v", m.Type)
 	}
-	return nil
+	return m.Size, nil
 }
 
+//NewMessageFromReader constructs a new message from a data in reader
 func NewMessageFromReader(reader io.Reader) (*Message, error) {
 	m := new(Message)
-	err := m.ReadFrom(reader)
+	_, err := m.ReadFrom(reader)
 	if err != nil {
 		return nil, err
 	}

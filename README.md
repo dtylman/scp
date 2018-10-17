@@ -1,6 +1,8 @@
 # scp
 
-A Simple `go` SCP client library
+[![Go Report Card](https://goreportcard.com/badge/github.com/dtylman/scp)](https://goreportcard.com/report/github.com/dtylman/scp)
+
+A Simple `go` SCP client library.
 
 ## Usage
 

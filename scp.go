@@ -1,17 +1,15 @@
 package scp
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 
-	log "github.com/Sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
-
-	"errors"
-
-	"bytes"
 )
 
 const (

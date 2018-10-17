@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
-	
- 	"github.com/dtylman/scp"
+
+	"github.com/dtylman/scp"
 	"golang.org/x/crypto/ssh"
 )
 
