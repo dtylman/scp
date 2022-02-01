@@ -33,7 +33,8 @@ func CopyTo(sshClient *ssh.Client, local string, remote string) (int64, error) {
 		return 0, err
 	}
 	defer writer.Close()
-	err = session.Start("scp -t " + filepath.Dir(remote))
+
+	err = session.Start("scp -t " + filepath.ToSlash(filepath.Dir(remote)))
 	if err != nil {
 		return 0, err
 	}
@@ -47,7 +48,7 @@ func CopyTo(sshClient *ssh.Client, local string, remote string) (int64, error) {
 	if err != nil {
 		return 0, err
 	}
-	_, err = fmt.Fprintf(writer, "C%s %d %s\n", fileMode, fileInfo.Size(), filepath.Base(remote))
+	_, err = fmt.Fprintf(writer, "C%s %d %s\n", fileMode, fileInfo.Size(), filepath.ToSlash(filepath.Base(remote)))
 	if err != nil {
 		return 0, err
 	}
@@ -83,7 +84,7 @@ func CopyFrom(sshClient *ssh.Client, remote string, local string) (int64, error)
 	if err != nil {
 		return 0, err
 	}
-	err = session.Start("scp -f " + remote)
+	err = session.Start("scp -f " + filepath.ToSlash(remote))
 	if err != nil {
 		return 0, err
 	}
