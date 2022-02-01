@@ -60,8 +60,7 @@ func CopyTo(sshClient *ssh.Client, local string, remote string) (int64, error) {
 		return 0, err
 	}
 
-	err = session.Wait()
-	log.Printf("Copied %v bytes out of %v. err: %v stdout:%v. stderr:%v", n, fileInfo.Size(), err, stdout, stderr)
+	session.Wait()
 	//NOTE: Process exited with status 1 is not an error, it just how scp work. (waiting for the next control message and we send EOF)
 	return n, nil
 }
@@ -122,8 +121,7 @@ func CopyFrom(sshClient *ssh.Client, remote string, local string) (int64, error)
 	if err != nil {
 		return 0, err
 	}
-	err = session.Wait()
-	log.Printf("Copied %v bytes out of %v. err: %v stderr:%v", n, msg.Size, err, stderr)
+	session.Wait()
 	return n, nil
 }
 

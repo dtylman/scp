@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -93,6 +94,9 @@ func main() {
 
 	flag.Parse()
 
+	if Options.Password == "" {
+		Options.Password = os.Getenv("GOSCP_PASSWORD")
+	}
 	err := goSCP()
 	if err != nil {
 		log.Printf("error: %v", err)
