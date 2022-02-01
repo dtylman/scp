@@ -1,0 +1,33 @@
+name: Build
+
+on: 
+  push:
+    branches: [master]    
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+
+      - name: Set up Go 1.17
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.17
+        id: go
+
+      - name: Build 
+        run: |         
+          sudo apt-get install upx-ucl zip
+          cd goscp
+          go build -ldflags="-s -w"
+          GOOS=windows go build -ldflags="-s -w"
+          upx goscp.exe  
+          zip goscp.zip goscp.exe goscp
+      - name: Uploading installer
+        uses: actions/upload-artifact@v2
+        with:
+            name: goscp
+            path: goscp/goscp.zip
